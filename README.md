@@ -1,6 +1,6 @@
 ## Hiding Singleton Implementation without PImpl
 
-The classic PImpl (Pointer to Implementation) is a well-known C++ pattern to hide implementation details from header files. 
+The classic PImpl (Pointer to Implementation) is a well-known C++ pattern to hide implementation details from header files.</br>
 However it requires heap allocation via `std::unique_ptr<Impl>`, which may not always be desirable.</br>
 This article describes an alternative approach for singletons that hides implementation details without heap allocation.
 
