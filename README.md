@@ -6,7 +6,7 @@ This article describes an alternative approach for singletons that hides impleme
 
 ## Framework
 
-Instead of std::unique_ptr<Impl>, the singleton is stored in pre-allocated stack storage managed by SingletonProxy, </br>
+Instead of std::unique_ptr<Impl>, the singleton is stored in pre-allocated stack storage managed by SingletonProxy, 
 with no heap allocation.
 
 The framework is split into two reusable headers — `SingletonProxy.h` and `Singleton.h` — so the developer only 
