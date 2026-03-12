@@ -182,6 +182,7 @@ int main()
     std::cout << "sum: " << calculator.Sum() << std::endl;
     
     return 0;
-}```
+}
+```
 
 The code can be tested at: [https://wandbox.org/permlink/mFAmTq4HwX3yG7iC](https://wandbox.org/permlink/mFAmTq4HwX3yG7iC)
