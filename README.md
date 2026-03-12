@@ -143,6 +143,7 @@ private:
     int sum_ = 0;
 };
 
+// These functions are referenced in Calculator.h
 ICalculator& ConstructCalculator() {
     return SingletonProxy<ICalculator, CalculatorImpl>::Construct();
 }
