@@ -22,29 +22,25 @@ Manages singleton lifetime — storage, mutex, ref counting. Written once, reuse
 #include <mutex>
 
 template <typename IT, typename T>
-class SingletonProxy
-{
+class SingletonProxy {
 public:
-    static IT& Construct()
-    {
+    static IT& Construct() {
         std::lock_guard<std::mutex> lock(s_mutex);
-        if (++s_refCount == 1)
+        if (++s_refCount == 1) {
             s_pImpl = new (&s_storage) T();
+        }
         return *s_pImpl;
     }
 
-    static void Destruct()
-    {
+    static void Destruct() {
         std::lock_guard<std::mutex> lock(s_mutex);
-        if (--s_refCount == 0)
-        {
+        if (--s_refCount == 0) {
             s_pImpl->~T();
             s_pImpl = nullptr;
         }
     }
 
-    static std::mutex& Mutex()
-    {
+    static std::mutex& Mutex() {
         return s_mutex;
     }
 
@@ -78,8 +74,7 @@ Wrapper class — constructs on creation, destructs on destruction. Written once
 #include <type_traits>
 
 template <auto Construct, auto Destruct>
-class Singleton
-{
+class Singleton {
     using IT = std::remove_reference_t<decltype(Construct())>;
 public:
     Singleton() : impl_(Construct()) {}
@@ -105,8 +100,7 @@ For instance, a singleton class `Calculator` implements interface `ICalculator`:
 
 #include "Singleton.h"
 
-class ICalculator
-{
+class ICalculator {
 public:
     virtual ~ICalculator() = default;
     virtual void Add(int n) = 0;
@@ -117,16 +111,13 @@ public:
 ICalculator& ConstructCalculator();
 void DestructCalculator();
 
-class Calculator: Singleton<ConstructCalculator, DestructCalculator>
-{
+class Calculator: Singleton<ConstructCalculator, DestructCalculator> {
 public:
-    void Add(int n)
-    {
+    void Add(int n) {
         impl_.Add(n);
     }
 
-    int Sum()
-    {
+    int Sum() {
         return impl_.Sum();
     }
 };
@@ -138,16 +129,13 @@ public:
 #include "Calculator.h"
 #include "SingletonProxy.h"
 
-class CalculatorImpl: public ICalculator
-{
+class CalculatorImpl: public ICalculator {
 public:
-    void Add(int n) override
-    {
+    void Add(int n) override {
         sum_ += n;
     }
 
-    int Sum() override
-    {
+    int Sum() override {
         return sum_;
     }
 
@@ -155,13 +143,11 @@ private:
     int sum_ = 0;
 };
 
-ICalculator& ConstructCalculator()
-{
+ICalculator& ConstructCalculator() {
     return SingletonProxy<ICalculator, CalculatorImpl>::Construct();
 }
 
-void DestructCalculator()
-{
+void DestructCalculator() {
     SingletonProxy<ICalculator, CalculatorImpl>::Destruct();
 }
 ```
@@ -172,8 +158,7 @@ void DestructCalculator()
 #include "Calculator.h"
 #include <iostream>
 
-int main()
-{
+int main() {
     Calculator calculator;
     calculator.Add(7);
 
