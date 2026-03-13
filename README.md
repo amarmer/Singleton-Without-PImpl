@@ -1,4 +1,4 @@
-## Hiding Singleton Implementation without PImpl
+## Destructible Singleton without PImpl
 
 The classic PImpl (Pointer to Implementation) is a well-known C++ pattern to hide implementation details from header files.</br>
 However it requires heap allocation via `std::unique_ptr<Impl>`, which may not always be desirable.</br>
@@ -7,7 +7,8 @@ This article describes an alternative approach for singletons that hides impleme
 ## Framework
 
 Instead of std::unique_ptr<Impl>, the singleton is stored in pre-allocated stack storage managed by SingletonProxy, 
-with no heap allocation.
+with no heap allocation. Unlike a simple singleton that lives for the entire application lifetime, 
+the framework allows it to be recreated when needed.
 
 The framework is split into two reusable headers — `SingletonProxy.h` and `Singleton.h` — so the developer only 
 needs to write the interface and the implementation.
