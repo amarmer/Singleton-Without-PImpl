@@ -1,22 +1,25 @@
-## Destructible Singleton without PImpl
+# Reconstructable Singleton
 
-The PImpl (Pointer to Implementation) is a well-known C++ pattern to hide implementation details from header files,</br>
-which requires heap allocation via `std::unique_ptr<Impl>`, which may not always be desirable.</br></br>
-This article describes an alternative approach for singletons that hides implementation details without heap allocation</br>
-and allows singleton reconstruction.
+Conventional singletons live for the entire application lifetime and typically require heap allocation.</br>This article describes a singleton design that uses pre-allocated static storage instead, hides implementation details from headers,</br> and supports explicit reconstruction.
+
+## Use Cases
+
+A reconstructable singleton is useful whenever the instance lifetime does not match the process lifetime:
+
+- Unit testing — destroy and reconstruct the singleton between tests for a clean slate, without restarting the process.
+- Plugin / dynamic library unloading — explicitly destroy the singleton before unloading a `.dll`/`.so` to avoid crashes from resources freed too late.
+- Configuration reload — reinitialize a subsystem in-place (e.g. reconnect to a different database, restart a logger with new settings) without a full process restart.
+- Phased startup / shutdown — control initialization and teardown order explicitly when static initialization order is insufficient.
 
 ## Framework
 
-Instead of std::unique_ptr<Impl>, the singleton is stored in pre-allocated stack storage managed by SingletonProxy, 
-with no heap allocation.</br> Unlike a simple singleton that lives for the entire application lifetime, 
-the framework allows it to be recreated when needed.
+Instead of heap allocation as in PImpl, the singleton is stored in pre-allocated static storage managed by `SingletonProxy`.</br>Unlike a conventional singleton that lives for the entire application lifetime, the framework supports explicit construction and destruction, enabling reconstruction when needed.
 
-The framework is split into two reusable headers — `SingletonProxy.h` and `Singleton.h` — so the developer only 
-needs to write the interface and the implementation.
+The framework is split into two reusable headers — `SingletonProxy.h` and `Singleton.h` — so the developer only needs to write the interface and the implementation.
 
 ### SingletonProxy.h
 
-Manages singleton lifetime — storage, mutex, ref counting.
+Manages singleton lifetime: static storage, mutex protection, and ref counting. The implementation is constructed on the first `Construct()` call and destroyed only when the last matching `Destruct()` call brings the ref count to zero — allowing multiple RAII handles to safely share one underlying instance.
 
 ```cpp
 #pragma once
@@ -68,7 +71,7 @@ int SingletonProxy<IT, T>::s_refCount = 0;
 
 ### Singleton.h
 
-Wrapper class — constructs on creation, destructs on destruction, calls any virtual function.
+An RAII wrapper — constructs the implementation on creation, destructs it on destruction, and dispatches calls to any virtual function through the interface.
 
 ```cpp
 #pragma once
@@ -97,11 +100,13 @@ protected:
 };
 ```
 
-## Example: Calculator.h, Calculator.cpp, main.cpp
+## Example: Calculator
 
-For instance, a singleton class `Calculator` implements interface `ICalculator`:
+To illustrate, a singleton class `Calculator` implements the interface `ICalculator`.
 
 ### Calculator.h
+
+Declares the interface, the construct/destruct functions (defined in `Calculator.cpp`), and the `Calculator` class itself. Implementation details are fully hidden from this header.
 
 ```cpp
 #pragma once
@@ -114,20 +119,22 @@ public:
     virtual int Sum() = 0;
 };
 
-// References to SingletonProxy<ICalculator, CalculatorImpl>::Construct/Destruct in Calculator.cpp
+// Defined in Calculator.cpp, which is the only translation unit that knows about CalculatorImpl
 ICalculator& ConstructCalculator();
 void DestructCalculator();
 
-class Calculator: public Singleton<ConstructCalculator, DestructCalculator> {};
+class Calculator : public Singleton<ConstructCalculator, DestructCalculator> {};
 ```
 
 ### Calculator.cpp
+
+The only file that knows about `CalculatorImpl`. It will never appear in any header.
 
 ```cpp
 #include "Calculator.h"
 #include "SingletonProxy.h"
 
-class CalculatorImpl: public ICalculator {
+class CalculatorImpl : public ICalculator {
 public:
     void Add(int n) override {
         sum_ += n;
@@ -141,7 +148,6 @@ private:
     int sum_ = 0;
 };
 
-// These functions are referenced in Calculator.h
 ICalculator& ConstructCalculator() {
     return SingletonProxy<ICalculator, CalculatorImpl>::Construct();
 }
@@ -153,6 +159,8 @@ void DestructCalculator() {
 
 ### main.cpp
 
+Both `calculator` and the temporary `Calculator()` refer to the same underlying `CalculatorImpl` instance — the ref count keeps it alive until both handles go out of scope.
+
 ```cpp
 #include "Calculator.h"
 #include <iostream>
@@ -161,10 +169,11 @@ int main() {
     Calculator calculator;
     calculator.Call(&ICalculator::Add, 7);
 
-    Calculator().Call(&ICalculator::Add, 10);
+    Calculator().Call(&ICalculator::Add, 10);  // temporary, shares the same instance
 
     std::cout << "sum: " << calculator.Call(&ICalculator::Sum) << std::endl;
-    
+    // prints: sum: 17
+
     return 0;
 }
 ```
