@@ -37,7 +37,7 @@ public:
     static void Destruct() {
         std::lock_guard<std::mutex> lock(s_mutex);
         if (--s_refCount == 0) {
-            s_pImpl->~T();
+            dynamic_cast<T*>(s_pImpl)->T::~T();
             s_pImpl = nullptr;
         }
     }
@@ -110,7 +110,6 @@ For instance, a singleton class `Calculator` implements interface `ICalculator`:
 
 class ICalculator {
 public:
-    virtual ~ICalculator() = default;
     virtual void Add(int n) = 0;
     virtual int Sum() = 0;
 };
@@ -170,4 +169,4 @@ int main() {
 }
 ```
 
-The code can be tested at: [https://wandbox.org/permlink/WdKS9GIGJiGAxpYa](https://wandbox.org/permlink/WdKS9GIGJiGAxpYa)
+The code can be tested at: [https://wandbox.org/permlink/2Yq6uPhxIF5TJrui](https://wandbox.org/permlink/2Yq6uPhxIF5TJrui)
