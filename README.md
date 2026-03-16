@@ -1,8 +1,9 @@
 ## Destructible Singleton without PImpl
 
 The classic PImpl (Pointer to Implementation) is a well-known C++ pattern to hide implementation details from header files.</br>
-However it requires heap allocation via `std::unique_ptr<Impl>`, which may not always be desirable.</br>
-This article describes an alternative approach for singletons that hides implementation details without heap allocation.
+However, it requires heap allocation via `std::unique_ptr<Impl>`, which may not always be desirable.</br>
+This article describes an alternative approach for singletons that hides implementation details without heap allocation</br>
+and allows singleton reconstruction.
 
 ## Framework
 
@@ -15,7 +16,7 @@ needs to write the interface and the implementation.
 
 ### SingletonProxy.h
 
-Manages singleton lifetime — storage, mutex, ref counting. Written once, reused for any singleton:
+Manages singleton lifetime — storage, mutex, ref counting.
 
 ```cpp
 #pragma once
@@ -67,7 +68,7 @@ int SingletonProxy<IT, T>::s_refCount = 0;
 
 ### Singleton.h
 
-Wrapper class — constructs on creation, destructs on destruction. Written once, reused for any singleton:
+Wrapper class — constructs on creation, destructs on destruction, calls any virtual function.
 
 ```cpp
 #pragma once
