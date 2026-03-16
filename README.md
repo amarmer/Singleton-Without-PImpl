@@ -73,6 +73,7 @@ Wrapper class — constructs on creation, destructs on destruction. Written once
 #pragma once
 
 #include <type_traits>
+#include <functional>
 
 template <auto Construct, auto Destruct>
 class Singleton {
@@ -80,6 +81,11 @@ class Singleton {
 public:
     Singleton() : impl_(Construct()) {}
     ~Singleton() { Destruct(); }
+
+    template<typename F, typename... Args>
+    auto Call(F f, Args... args) {
+        return std::invoke(f, impl_, args...);
+    }
 
 private:
     Singleton(const Singleton&) = delete;
@@ -112,16 +118,7 @@ public:
 ICalculator& ConstructCalculator();
 void DestructCalculator();
 
-class Calculator: Singleton<ConstructCalculator, DestructCalculator> {
-public:
-    void Add(int n) {
-        impl_.Add(n);
-    }
-
-    int Sum() {
-        return impl_.Sum();
-    }
-};
+class Calculator: public Singleton<ConstructCalculator, DestructCalculator> {};
 ```
 
 ### Calculator.cpp
@@ -162,14 +159,14 @@ void DestructCalculator() {
 
 int main() {
     Calculator calculator;
-    calculator.Add(7);
+    calculator.Call(&ICalculator::Add, 7);
 
-    Calculator().Add(10);
+    Calculator().Call(&ICalculator::Add, 10);
 
-    std::cout << "sum: " << calculator.Sum() << std::endl;
+    std::cout << "sum: " << calculator.Call(&ICalculator::Sum) << std::endl;
     
     return 0;
 }
 ```
 
-The code can be tested at: [https://wandbox.org/permlink/kwejWOvj40ZNgvis](https://wandbox.org/permlink/kwejWOvj40ZNgvis)
+The code can be tested at: [https://wandbox.org/permlink/WdKS9GIGJiGAxpYa](https://wandbox.org/permlink/WdKS9GIGJiGAxpYa)
