@@ -1,7 +1,7 @@
 ## Destructible Singleton without PImpl
 
-The classic PImpl (Pointer to Implementation) is a well-known C++ pattern to hide implementation details from header files.</br>
-However, it requires heap allocation via `std::unique_ptr<Impl>`, which may not always be desirable.</br>
+The PImpl (Pointer to Implementation) is a well-known C++ pattern to hide implementation details from header files,</br>
+which requires heap allocation via `std::unique_ptr<Impl>`, which may not always be desirable.</br></br>
 This article describes an alternative approach for singletons that hides implementation details without heap allocation</br>
 and allows singleton reconstruction.
 
