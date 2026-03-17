@@ -1,6 +1,6 @@
 # Reconstructable Singleton
 
-Conventional singletons live for the entire application lifetime and typically require heap allocation.</br>This article describes a singleton design that uses pre-allocated static storage instead, hides implementation details from headers, and supports explicit reconstruction.
+Conventional singletons live for the entire application lifetime and typically require heap allocation.</br>This article describes a singleton design that uses pre-allocated static storage instead, supports explicit reconstruction, and hides implementation details from headers.
 
 ## Use Cases
 
@@ -13,7 +13,8 @@ A reconstructable singleton is useful whenever the instance lifetime does not ma
 
 ## Framework
 
-Instead of heap allocation as in PImpl, the singleton is stored in pre-allocated static storage managed by `SingletonProxy`.</br>Unlike a conventional singleton that lives for the entire application lifetime, the framework supports explicit construction and destruction, enabling reconstruction when needed.
+Unlike a conventional singleton that lives for the entire application lifetime, the framework supports explicit construction and destruction, enabling reconstruction when needed.</br>
+And instead of heap allocation as in PImpl, the singleton is stored in pre-allocated static storage managed by SingletonProxy.
 
 The framework is split into two reusable headers — `SingletonProxy.h` and `Singleton.h` — so the developer only needs to write the interface and the implementation.
 
