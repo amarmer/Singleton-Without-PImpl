@@ -1,6 +1,6 @@
 # Reconstructable Singleton
 
-Conventional singletons live for the entire application lifetime and typically require heap allocation.</br>This article describes a singleton design that uses pre-allocated static storage instead, hides implementation details from headers,</br> and supports explicit reconstruction.
+Conventional singletons live for the entire application lifetime and typically require heap allocation.</br>This article describes a singleton design that uses pre-allocated static storage instead, hides implementation details from headers, and supports explicit reconstruction.
 
 ## Use Cases
 
