@@ -6,10 +6,9 @@ Conventional singletons live for the entire application lifetime and typically r
 
 A reconstructable singleton is useful whenever the instance lifetime does not match the process lifetime:
 
+- On-demand resources — create when needed, release when done, recreate on next use and any thread can access the singleton without it being explicitly passed around.
 - Unit testing — destroy and reconstruct the singleton between tests for a clean slate, without restarting the process.
 - Plugin / dynamic library unloading — explicitly destroy the singleton before unloading a `.dll`/`.so` to avoid crashes from resources freed too late.
-- Configuration reload — reinitialize a subsystem in-place (e.g. reconnect to a different database, restart a logger with new settings) without a full process restart.
-- Phased startup / shutdown — control initialization and teardown order explicitly when static initialization order is insufficient.
 
 ## Framework
 
@@ -51,23 +50,11 @@ public:
     }
 
 private:
-    static unsigned char s_storage[sizeof(T)];
-    static T* s_pImpl;
-    static std::mutex s_mutex;
-    static int s_refCount;
+    inline static std::aligned_storage_t<sizeof(T), alignof(T)> s_storage;
+    inline static T* s_pImpl;
+    inline static std::mutex s_mutex;
+    inline static int s_refCount;
 };
-
-template<typename IT, typename T>
-T* SingletonProxy<IT, T>::s_pImpl = nullptr;
-
-template<typename IT, typename T>
-std::mutex SingletonProxy<IT, T>::s_mutex;
-
-template<typename IT, typename T>
-alignas(T) unsigned char SingletonProxy<IT, T>::s_storage[sizeof(T)];
-
-template<typename IT, typename T>
-int SingletonProxy<IT, T>::s_refCount = 0;
 ```
 
 ### Singleton.h
@@ -118,6 +105,8 @@ class ICalculator {
 public:
     virtual void Add(int n) = 0;
     virtual int Sum() = 0;
+    // No virtual destructor needed — SingletonProxy calls the destructor
+    // of the most derived class directly via dynamic_cast<T*>(s_pImpl)->T::~T()
 };
 
 // Defined in Calculator.cpp, which is the only translation unit that knows about CalculatorImpl
@@ -179,4 +168,4 @@ int main() {
 }
 ```
 
-The code can be tested at: [https://wandbox.org/permlink/2Yq6uPhxIF5TJrui](https://wandbox.org/permlink/2Yq6uPhxIF5TJrui)
+The code can be tested at: [https://wandbox.org/permlink/ShJqfbABwKjZuQbU](https://wandbox.org/permlink/ShJqfbABwKjZuQbU)
